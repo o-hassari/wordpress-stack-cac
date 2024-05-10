@@ -1,0 +1,75 @@
+---
+- name: Create .my.cnf file with root credentials
+  copy:
+    dest: "/root/.my.cnf"
+    content: |
+      [client]
+
+    mode: '0600'
+  become: true
+  notify: stop mysql
+  
+- name: "Create DB wordpress"
+  mysql_db:
+    name: "{{ wordpress_database }}"
+    state: present
+    # login_user: root
+    # login_password: password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+  # when: ansible_play_batch[0] == inventory_hostname
+
+- name: "INSTALL DB - Create user"
+  mysql_user:
+    name: "{{ wordpress_user }}"
+    password: "{{ wordpress_password }}"
+    priv: "{{ wordpress_database }}.*:ALL"
+    host: "%"
+    # login_user: root
+    # login_password: password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+  become: true
+  # when: ansible_play_batch[0] == inventory_hostname
+  
+
+
+- name: Set bind-address in MySQL configuration
+  lineinfile:
+    path: /etc/mysql/my.cnf  # Path to MySQL configuration file
+    regexp: '^bind-address\s*='
+    line: 'bind-address = 0.0.0.0'
+  become: true
+  notify: restart mysql
+
+
+# - name: Set MySQL root password
+#   mysql_user:
+#     name: root
+#     password: password
+#     login_unix_socket: /var/run/mysqld/mysqld.sock
+#   become: true
+
+- name: config | Configuring Galera Cluster
+  template:
+    src: etc/mysql/conf.d/galera.cnf.j2
+    dest: /etc/mysql/conf.d/galera.cnf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  become: true
+  # notify: stop mysql
+
+- meta: flush_handlers
+
+
+
+
+
+# - name: Check if Galera Cluster started successfully
+#   fail:
+#     msg: "Failed to start Galera Cluster"
+#   when:
+#     - ansible_play_batch[0] == inventory_hostname 
+#     - galera_start_result
+

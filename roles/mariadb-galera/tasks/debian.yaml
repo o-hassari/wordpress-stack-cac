@@ -1,0 +1,36 @@
+---
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - apt-transport-https
+    - software-properties-common
+    - python3-pymysql
+    - rsync
+    - gnupg
+    - mariadb-server
+  register: result
+  until: result is successful
+
+- name: Start mysql service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+  become: true
+
+# - name: debian | installing packages
+#   apt:
+#     name: keepalived
+#     state: present
+#   become: true
+#   register: result
+#   until: result is succeeded
+
+- include_tasks: config.yaml
+
+- include_tasks: start.yaml
+
+- include_tasks: service.yaml

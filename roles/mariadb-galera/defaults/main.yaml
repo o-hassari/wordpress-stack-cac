@@ -1,0 +1,4 @@
+inventory_group_name: "db_servers"
+wordpress_database: wordpress
+wordpress_user: wordpress
+wordpress_password: wordpress

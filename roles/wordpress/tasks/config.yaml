@@ -1,0 +1,124 @@
+---
+# - name: "[INSTALL WORDPRESS] - check if exist"
+#   stat:
+#     path: "/var/www/html/wordpress/"
+#   register: check_wordpress
+
+# - name: "[INSTALL WORDPRESS] - download tar.gz"
+#   unarchive:
+#     src: "{{ wordpress_source }}"
+#     dest: "/var/www/html/"
+#     remote_src: yes
+#   when: check_wordpress.stat.exists == False 
+
+- name: Download Wordpress
+  get_url:
+    url: https://wordpress.org/wordpress-{{ wordpress_version }}.tar.gz
+    dest: "{{ wordpress_install_directory }}"
+  changed_when: false
+  become: true
+  tags: wordpress
+
+- name: Unzipping wordpress
+  unarchive:
+    src: "{{ wordpress_install_directory }}/wordpress-{{ wordpress_version }}.tar.gz"
+    dest: "{{ wordpress_install_directory }}"
+    remote_src: true
+    owner: www-data
+    group: www-data
+    creates: "{{ wordpress_directory }}"
+  become: true
+  tags: wordpress
+
+- name: Remove wordpress.tar.gz file
+  file:
+    path: "{{ wordpress_install_directory }}/wordpress-{{ wordpress_version }}.tar.gz"
+    state: absent
+  changed_when: false
+  become: true
+  tags: wordpress
+
+- name: "[INSTALL WORDPRESS] - drop file default index.html"
+  file:
+    path: "{{wordpress_install_directory}}/index.html"
+    state: absent
+  
+
+
+- name: "[INSTALL WORDPRESS] - check if exist"
+  stat:
+    path: "{{wordpress_directory}}/wp-config-sample.php"
+  register: check_sample
+
+- name: "[INSTALL WORDPRESS] - rename wp-config-sample.php"
+  command: mv {{wordpress_directory}}/wp-config-sample.php {{wordpress_directory}}/wp-config.php
+  become: true
+  when: check_sample.stat.exists == True
+
+
+- name: config | wordpress/wp-config.php
+  template:
+    src: wp-config.php.j2
+    dest: "{{ wordpress_configuration }}"
+    owner: www-data
+    group: www-data
+    mode: '0640'
+  become: true
+
+
+- name: Apache config file for Wordpress
+  template:
+    src: wordpress.conf.j2
+    dest: "{{ wordpress_httpd_configuration }}"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  become: true
+  notify: restart apache2
+  tags: wordpress
+
+- name: Apache config file for Wordpress
+  template:
+    src: .htaccess.j2
+    dest: "{{ wordpress_directory }}"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  become: true
+  notify: restart apache2
+  tags: wordpress
+
+
+- name: Change ownership
+  file:
+    path: "{{wordpress_directory}}"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+ 
+- name: Set appropriate permissions for directories and files
+  shell: |
+    find {{wordpress_directory}} -type d -exec chmod 755 {} \;
+    find {{wordpress_directory}} -type f -exec chmod 644 {} \;
+
+- name: Enable site
+  shell: a2ensite {{site_name}}
+  become: true
+  notify: reload apache2
+ 
+- name: Disable default site
+  shell: a2dissite 000-default.conf
+  become: true
+  notify: restart apache2
+
+# - name: "[INSTALL WORDPRESS] - modify wp-config.php"
+#   lineinfile:
+#     dest: "/var/www/html/wordpress/wp-config.php"
+#     regexp: "{{ item.search }}"
+#     line: "{{ item.new }}"
+#     backrefs: yes
+#   with_items:
+#     - {'search': '^(.*)database_name_here(.*)$', 'new': '\1{{ wordpress_database }}\2'}
+#     - {'search': '^(.*)username_here(.*)$', 'new': '\1{{ wordpress_user }}\2'}
+#     - {'search': '^(.*)password_here(.*)$', 'new': '\1{{ wordpress_password }}\2'}

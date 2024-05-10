@@ -1,0 +1,4 @@
+---
+# tasks file for ansible-nginx-load-balancer
+- include_tasks: debian.yaml
+  when: ansible_os_family == "Debian"

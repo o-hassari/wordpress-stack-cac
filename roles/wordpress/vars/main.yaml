@@ -1,0 +1,55 @@
+# ---
+
+# wordpress_repository: []
+lamp_packages:
+    - apache2
+    - unzip 
+    - wget
+    - net-tools
+    - apt-utils
+    - php-cli
+    - php-common
+    - php-imap
+    - php-redis
+    - php-snmp
+    - php-xml
+    - php-mysqli
+    - php-zip
+    - php-mbstring
+    - php-curl
+    - libapache2-mod-php
+wordpress_version: '6.5.2'
+# wordpress_packages:
+#   - python3-libsemanage  # for the seboolean task.
+#   - php
+#   - php-xml
+#   - php-mysqlnd
+#   - unzip                # for installing plugins
+
+server_name: monblog.projet.local
+
+wordpress_install_directory: '/var/www/html' #'/usr/share'
+wordpress_directory: '/var/www/html/wordpress' #'/usr/share/wordpress'
+
+site_name: wordpress
+
+wordpress_httpd_configuration: '/etc/apache2/sites-available/{{site_name}}.conf'
+wordpress_configuration: "{{ wordpress_directory }}/wp-config.php"
+
+# wordpress_plugin_directory: "{{ wordpress_directory }}/wp-content/plugins"
+# wordpress_theme_directory: "{{ wordpress_directory }}/wp-content/themes"
+
+# wordpress_httpd_service: '/usr/lib/systemd/system/httpd.service'
+
+wordpress_database: wordpress
+wordpress_user: wordpress
+wordpress_password: wordpress
+wordpress_database_host: 192.168.20.16
+
+wordpress_plugins: []
+wordpress_themes: []
+
+wordpress_force_ssl: false
+wordpress_allow_file_mods: true
+wordpress_automatic_updates: true
+wordpress_debug: true

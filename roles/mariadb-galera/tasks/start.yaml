@@ -1,0 +1,8 @@
+---
+- name: Start Galera Cluster
+  command: galera_new_cluster
+  become: true
+
+  register: galera_start_result
+  ignore_errors: false
+  when: ansible_play_batch[0] == inventory_hostname

@@ -1,0 +1,124 @@
+---
+# - name: task with SSH Init
+#   hosts: all
+#   gather_facts: false
+#   become: true
+#   tasks:
+#     - name: Run a command on the target host through the bastion
+#       ansible.builtin.shell: echo "Hello from {{ inventory_hostname }}"
+
+# - name: Provision hosts by adding entries to /etc/hosts lb
+#   hosts: load_balancers
+#   become: true
+#   tasks:
+#     - name: Add monblog.projet.local entries to /etc/hosts
+#       lineinfile:
+#         path: /etc/hosts
+#         line: "{{ item }}"
+#         state: present
+#       with_items:
+#         - "192.168.20.14 monblog.projet.local"
+#         - "192.168.20.15 monblog.projet.local"
+
+- name: Configuring Load Balancers
+  hosts: load_balancers
+  vars:
+    keepalived_config: true
+    keepalived_router_info:
+    - name: vrrp_1
+      check_script:
+        - name: chk_nginx
+          script: pidof nginx
+          interval: 2
+          weight: 2
+      # Define inventory_hostname of node to be considered Master
+      master_node: "{{ groups['load_balancers'][0] }}"
+      unicast_src_ip: "{{ groups['load_balancers'][0] }}"
+      unicast_peers: "{{ groups['load_balancers'][1] }}"
+      router_id: 50
+      router_pri_backup: 100
+      router_pri_master: 150
+      vip_int: "{{ ansible_eth1.device }}"
+      vip_addresses:
+        - 192.168.20.100
+        - 192.168.20.101
+      use_unicast: true
+      # set unicasts settings in hostvars
+      nopreempt: true
+    - name: vrrp_2
+      check_script:
+        - name: chk_nginx
+          script: "pidof nginx"
+          interval: 2
+          weight: 2
+      master_node: node1
+      router_id: 51
+      router_pri_backup: 100
+      router_pri_master: 150
+      unicast_src_ip: "{{ groups['load_balancers'][1] }}"
+      unicast_peers: "{{ groups['load_balancers'][0] }}"
+      vip_int: "{{ ansible_eth1.device }}"
+      vip_addresses:
+        - 192.168.20.100
+        - 192.168.20.101
+    nginx_load_balancer_configs:
+      - name: web_app
+        frontend_listen_port: 80
+        location: /
+        method: round_robin
+        options:
+          - proxy_buffering off
+          - proxy_http_version 1.1
+          - "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for"
+          - "proxy_set_header Upgrade $http_upgrade"
+          - "proxy_set_header Connection $http_connection"
+          - access_log off
+          - proxy_pass http://web_app
+        protocol: http
+        server_name:
+          - localhost
+        ssl: false
+        upstream:
+          - servers: ['monblog.projet.local'] #"{{ groups['web_servers'] }}"
+            backend_listen_port: 80
+            # options:
+            #   - fail_timeout=10s
+            #   - max_conns=0
+            #   - max_fails=1
+            #   - weight=1
+
+    nginx_load_balancer_headers:
+      - "Host $host"
+      - "X-Real-IP $remote_addr"
+      - "X-Forwarded-For $remote_addr"
+      - "X-Forwarded-Host $remote_addr"
+  tasks:
+    - name: Include ansible-nginx-load-balancer
+      include_role:
+        name: nginx-lb
+
+# - name: Configuring Cluster DB
+#   hosts: db_servers
+#   gather_facts: true
+#   become: true
+#   vars:
+#     inventory_group_name: db_servers
+#     wsrep_cluster_name: "Galera_Cluster"
+#     wordpress_database: wordpress
+#     wordpress_user: wordpress
+#     wordpress_password: wordpress
+#   tasks:
+#     - name: Include ansible mariadb-galera
+#       include_role:
+#         name: mariadb-galera
+
+# - name: Configuring WordPress
+#   hosts: web_servers
+#   gather_facts: true
+#   become: true
+#   vars:
+#     server_name: monblog.projet.local
+#   tasks:
+#     - name: Include ansible wordpress
+#       include_role:
+#         name: wordpress

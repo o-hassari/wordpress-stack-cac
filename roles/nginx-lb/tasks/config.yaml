@@ -1,0 +1,30 @@
+---
+- name: config - Configuring NGNIX Load Balancer
+  template:
+    src: etc/nginx/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  become: true
+  notify: restart nginx
+
+- name: config - configuring keepalived
+  template:
+    src: etc/keepalived/keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  become: true
+  notify:
+    - restart keepalived
+
+
+- name: sysctl - allowing VIP to come up on both nodes
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    state: present
+    reload: true
+  become: true

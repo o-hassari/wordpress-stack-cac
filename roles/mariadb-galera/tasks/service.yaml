@@ -1,0 +1,7 @@
+- name: Start mysql service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+  become: true
+  when: ansible_play_batch[0] != inventory_hostname

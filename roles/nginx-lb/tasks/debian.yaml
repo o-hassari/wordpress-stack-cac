@@ -1,0 +1,20 @@
+---
+- name: debian | Installing NGINX
+  apt:
+    name: nginx
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | installing packages
+  apt:
+    name: keepalived
+    state: present
+  become: true
+  register: result
+  until: result is succeeded
+
+
+- include_tasks: service.yaml
+- include_tasks: config.yaml

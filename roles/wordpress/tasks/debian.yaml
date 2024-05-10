@@ -1,0 +1,15 @@
+---
+- name: "[INSTALL PACKAGES] - update cache"
+  apt:
+    update_cache: yes
+  become: true
+
+- name: "[INSTALL PACKAGES] - apt get LAMP" 
+  apt: 
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop: "{{ lamp_packages }}"
+  notify: start apache
+
+- include_tasks: config.yaml
