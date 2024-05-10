@@ -1,0 +1,7 @@
+- name: task with SSH Init
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Run a command on the target host through the bastion
+      ansible.builtin.shell: echo "Hello from {{ inventory_hostname }}"

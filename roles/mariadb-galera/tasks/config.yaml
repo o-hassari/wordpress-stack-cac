@@ -42,6 +42,38 @@
   become: true
   notify: restart mysql
 
+#####
+- name: Install NFS client package for backup system
+  apt:
+    name: nfs-common
+    state: present
+
+- name: Create NFS export directories
+  file:
+    path: "/mnt/backups"
+    state: directory
+
+- name: Mount NFS share for backups
+  mount:
+    path: /mnt/backups
+    src: "{{ nfs_server_ip }}:/nfs4/backups"
+    fstype: nfs
+    opts: defaults
+    state: mounted
+
+- name: Create DUMP bash file
+  template:
+    src: "templates/mysqldump_backup.sh.j2"
+    dest: "/usr/local/mysqldump_backup.sh"
+    mode: '0755'
+
+- name: Create daily backup cron job
+  cron:
+    name: "Daily MySQL backup"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/mysqldump_backup.sh"
+
 
 # - name: Set MySQL root password
 #   mysql_user:

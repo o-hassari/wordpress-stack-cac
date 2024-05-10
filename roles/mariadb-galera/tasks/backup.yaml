@@ -1,0 +1,34 @@
+---    
+- name: Install NFS server package
+  apt:
+    name: nfs-kernel-server
+    state: present
+
+- name: Create NFS export directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "/nfs4/backups" 
+    - "/opt/backups"
+
+- name: Bind mount directories
+  mount:
+    src: "/opt/backups"
+    path: "/nfs4/backups"
+    fstype: none
+    opts: bind
+    state: mounted
+
+- name: Add NFS exports
+  lineinfile:
+    path: /etc/exports 
+    line: "/nfs4/backups 192.168.20.0/24(rw,sync,no_subtree_check,no_root_squash)" 
+
+- name: Reload NFS exports
+  command: exportfs -ra
+
+- name: Restart NFS server
+  systemd:
+    name: nfs-kernel-server
+    state: restarted
