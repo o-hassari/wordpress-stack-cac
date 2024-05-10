@@ -17,3 +17,5 @@ Le fichier main.yaml contient plusieurs tâches pour la configuration de la base
 
 Partie Backup
 Un partage a été monté pour stocker les sauvegardes de la base de données. Un cron a été créé pour déposer les dumps dans le répertoire /mnt/backup.
+
+Faute de temps , nous avons pu tester la partie keepalidved pour le bon fonctionnement des virtualip , ils sont implementer dans le role mais ils sont commenté .
