@@ -19,27 +19,16 @@ lamp_packages:
     - php-curl
     - libapache2-mod-php
 wordpress_version: '6.5.2'
-# wordpress_packages:
-#   - python3-libsemanage  # for the seboolean task.
-#   - php
-#   - php-xml
-#   - php-mysqlnd
-#   - unzip                # for installing plugins
 
 server_name: monblog.projet.local
 
-wordpress_install_directory: '/var/www/html' #'/usr/share'
-wordpress_directory: '/var/www/html/wordpress' #'/usr/share/wordpress'
+wordpress_install_directory: '/var/www/html' 
+wordpress_directory: '/var/www/html/wordpress' 
 
 site_name: wordpress
 
 wordpress_httpd_configuration: '/etc/apache2/sites-available/{{site_name}}.conf'
 wordpress_configuration: "{{ wordpress_directory }}/wp-config.php"
-
-# wordpress_plugin_directory: "{{ wordpress_directory }}/wp-content/plugins"
-# wordpress_theme_directory: "{{ wordpress_directory }}/wp-content/themes"
-
-# wordpress_httpd_service: '/usr/lib/systemd/system/httpd.service'
 
 wordpress_database: wordpress
 wordpress_user: wordpress
