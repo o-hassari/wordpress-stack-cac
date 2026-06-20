@@ -1,4 +1,4 @@
-# 🚀 Project Wordpress Stack - Deployment Guide
+# 🚀 Wordpress Stack CaC - Deployment Guide
 
 Welcome to the documentation for the application deployment stack. This guide details the necessary steps for setting up our complete environment, including a MariaDB Galera Cluster, WordPress CMS, and Active-Passive Load Balancing.
 
